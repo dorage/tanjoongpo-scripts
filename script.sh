@@ -15,13 +15,20 @@ function log() {
 	echo "[$timestamp] $msg" >> $log_filename
 }
 
-company_code="E0960"
-mbr_filename="${today}_001_mobile_mtchg.json"
-mbr_only_filename="mbr_$today.json"
-acr_filename="$today-001-$company_code.json"
-acr_only_filename="acr_$today.json"
-
 log "탄중포 오늘의 작업 시작"
+
+log "mbr_info 가져오기"
+cp -r /home/sftpuser/mbr_info /home/ec2-user/mbr_info
+
+log "acrs 디렉터리 생성"
+mkdir acrs
+
+company_code="E0960"
+root="/home/ec2-user"
+mbr_filename="$home/mbr_info/${today}_001_mobile_mtchg.json"
+mbr_only_filename="$home/mbr_info/mbr_$today.json"
+acr_filename="$home/acrs/$today-001-$company_code.json"
+acr_only_filename="$home/acrs/acr_$today.json"
 
 # mbr 데이터만 추출
 cat $mbr_filename | jq '.result | .mbr' > "$mbr_only_filename"
@@ -67,7 +74,7 @@ log "DUCKDB: ACR 테이블 JSON으로 내보내기 시작"
 duckdb db.duckdb "COPY db.acrs TO '$acr_only_filename' (FORMAT JSON, ARRAY true)"
 
 log "DUCKDB: ACR 테이블 JSON으로 내보내기 완료"
-log "오늘의 탄중포 작업 스크립트 생성"
+log "오늘의 acrs 파일 생성"
 
 echo "{
 	\"info\": {
@@ -81,3 +88,13 @@ echo "{
 	},
 	\"acrs\": $( cat $acr_only_filename )
 }" >> $acr_filename
+
+log "오늘의 acrs 파일 이동"
+
+cp $acr_filename /home/sftpuser/acrs
+
+
+log "마무으리"
+rm -rf "$root/mbr_info"
+rm -rf "$root/acrs"
+rm db.duckdb
