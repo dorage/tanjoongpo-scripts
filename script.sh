@@ -26,22 +26,22 @@ cat $mbr_filename | jq '.result | .mbr' > "$mbr_only_filename"
 log "DUCKDB: MBR 테이블 생성 시작"
 
 # mbrs 데이터를 db로 생성
-duckdb $today.duckdb "CREATE TABLE mbrs AS SELECT * FROM read_json('$mbr_only_filename')"
+duckdb db.duckdb "CREATE TABLE mbrs AS SELECT * FROM read_json('$mbr_only_filename')"
 
 log "DUCKDB: MBR 테이블 생성 완료"
 log "DUCKDB: ACR 테이블 생성 시작"
 
 # acrs 테이블 생성
-duckdb $today.duckdb "CREATE TABLE acrs (mtchgId varchar(255), incntvCd varchar(255), acrsCo int, dtlAcrs int)"
+duckdb db.duckdb "CREATE TABLE acrs (mtchgId varchar(255), incntvCd varchar(255), acrsCo int, dtlAcrs int)"
 
 log "DUCKDB: ACR 테이블 생성 완료"
 log "DUCKDB: 데이터 매칭 시작"
 
 # mysql 데이터 끌어오기 위해 연결
-duckdb $today.duckdb "INSTALL mysql"
-duckdb $today.duckdb "LOAD mysql"
+duckdb db.duckdb "INSTALL mysql"
+duckdb db.duckdb "LOAD mysql"
 
-duckdb $today.duckdb "
+duckdb db.duckdb "
 ATTACH 'host=175.126.82.217 port=3306 user=readonly password=Kj7#mN9@pQ database=circularlabs' AS mysqldb (TYPE mysql);
 USE mysqldb;
 
@@ -50,17 +50,18 @@ SELECT m.mtchgId as mtchgId, 'I0003' as incntvCd, r.count as acrsCo, 0 as dtlAcr
 	'mysqldb', 
 	'SELECT FN_DEC(r.user_name) as name, FN_DEC(r.user_phone) as phone, count(*) as count
 	FROM rental r
-	WHERE DATE(r.created_at)='$( date +%Y )$( date +%m )$( date +%d )'
+	WHERE DATE(r.created_at)=\"$( date +%Y )-$( date +%m )-$( date +%d )\"
 	GROUP BY r.user_name, r.user_phone'
 ) r
-LEFT JOIN db.mbrs m ON m.usernm=r.name and m.moblphon=r.phone;
+LEFT JOIN db.mbrs m ON m.usernm=r.name and m.moblphon=r.phone
+WHERE mtchgId IS NOT NULL
 "
 
 log "DUCKDB: 데이터 매칭 완료"
 log "DUCKDB: ACR 테이블 JSON으로 내보내기 시작"
 
 # acrs json으로 생성
-duckdb $today.duckdb "COPY db.acrs TO '$today-001-E0960.json'"
+duckdb db.duckdb "COPY db.acrs TO '$today-001-E0960.json' (FORMAT JSON, ARRAY true)"
 
 log "DUCKDB: ACR 테이블 JSON으로 내보내기 완료"
 log "오늘의 탄중포 작업 완료"
