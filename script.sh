@@ -15,8 +15,11 @@ function log() {
 	echo "[$timestamp] $msg" >> $log_filename
 }
 
+company_code="E0960"
 mbr_filename="${today}_001_mobile_mtchg.json"
 mbr_only_filename="mbr_$today.json"
+acr_filename="$today-001-$company_code.json"
+acr_only_filename="acr_$today.json"
 
 log "탄중포 오늘의 작업 시작"
 
@@ -61,7 +64,20 @@ log "DUCKDB: 데이터 매칭 완료"
 log "DUCKDB: ACR 테이블 JSON으로 내보내기 시작"
 
 # acrs json으로 생성
-duckdb db.duckdb "COPY db.acrs TO '$today-001-E0960.json' (FORMAT JSON, ARRAY true)"
+duckdb db.duckdb "COPY db.acrs TO '$acr_only_filename' (FORMAT JSON, ARRAY true)"
 
 log "DUCKDB: ACR 테이블 JSON으로 내보내기 완료"
-log "오늘의 탄중포 작업 완료"
+log "오늘의 탄중포 작업 스크립트 생성"
+
+echo "{
+	\"info\": {
+		\"requestNo\": \"001\",
+		\"partcptnEntCd\": \"$company_code\",
+		\"rlvtDe\": \"$today\",
+		\"nextMthd\": \"F\",
+		\"encptCd\": \"PT\",
+		\"totcnt\": \"\",
+		\"errCd\": \"E000\"
+	},
+	\"acrs\": $( cat $acr_only_filename )
+}" >> $acr_filename
