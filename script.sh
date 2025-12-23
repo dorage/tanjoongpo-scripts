@@ -50,7 +50,7 @@ SELECT m.mtchgId as mtchgId, 'I0003' as incntvCd, r.count as acrsCo, 0 as dtlAcr
 	'mysqldb', 
 	'SELECT FN_DEC(r.user_name) as name, FN_DEC(r.user_phone) as phone, count(*) as count
 	FROM rental r
-	WHERE DATE(r.created_at)='$today'
+	WHERE DATE(r.created_at)='$( date +%Y )$( date +%m )$( date +%d )'
 	GROUP BY r.user_name, r.user_phone'
 ) r
 LEFT JOIN db.mbrs m ON m.usernm=r.name and m.moblphon=r.phone;
