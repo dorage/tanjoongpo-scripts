@@ -76,7 +76,7 @@ echo "{
 		\"rlvtDe\": \"$today\",
 		\"nextMthd\": \"F\",
 		\"encptCd\": \"PT\",
-		\"totcnt\": \"\",
+		\"totcnt\": \"$( jq 'length' $acr_only_filename )\",
 		\"errCd\": \"E000\"
 	},
 	\"acrs\": $( cat $acr_only_filename )
