@@ -1,0 +1,1 @@
+0 2 * * * sh /home/ec2-user/tanjoongpo.sh
