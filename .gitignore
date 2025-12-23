@@ -1,0 +1,3 @@
+*.json
+*.duckdb
+.DS_Store
